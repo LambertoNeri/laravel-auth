@@ -8,6 +8,20 @@ use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
+    private $validations = [
+        'title'        => 'required|string|min:5|max:100',
+        'url_image' => 'required|url|max:200',
+        'content'   => 'required|string', 
+        
+    ];
+    
+    private $validation_messages = [
+        'required' =>  'Il campo :attribute è obbligatorio',
+        'min'      =>  'Il campo :attribute deve avere almeno :min caratteri',
+        'max'      =>  'Il campo :attribute deve avere un massimo di :max caratteri',
+        'url'      =>  'Il campo deve essere un url valido',
+    ];
+    
     /**
      * Display a listing of the resource.
      *
@@ -27,7 +41,7 @@ class PostController extends Controller
      */
     public function create()
     {
-        //
+        return view('admin.posts.create');
     }
 
     /**
@@ -38,7 +52,17 @@ class PostController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate($this->validations, $this->validation_messages);
+
+        $data = $request->all();
+
+        $newPost = new Post();
+        $newPost->title     = $data['title'];
+        $newPost->url_image = $data['url_image'];
+        $newPost->content   = $data['content'];
+        $newPost->save();
+
+        return to_route('admin.posts.show', ['post' => $newPost]);
     }
 
     /**
@@ -60,7 +84,7 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        //
+        return view ('admin.posts.edit', compact('post'));
     }
 
     /**
@@ -72,7 +96,15 @@ class PostController extends Controller
      */
     public function update(Request $request, Post $post)
     {
-        //
+        $request->validate($this->validations, $this->validation_messages);
+        $data = $request->all();
+
+        $post->title     = $data['title'];
+        $post->url_image = $data['url_image'];
+        $post->content   = $data['content'];
+        $post->update();
+
+        return to_route('admin.posts.show', ['post' => $post]);
     }
 
     /**
@@ -83,6 +115,8 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        //
+        $post->delete();
+
+        return to_route('admin.posts.index')->with('delete_success', $post);
     }
 }
